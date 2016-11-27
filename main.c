@@ -265,8 +265,13 @@ int main(void){
  *  Create tasks
  */
 
-	xTaskCreate( vTaskBluetooth, "Bluetooth", 1000, NULL, 1, NULL);
-	xTaskCreate( vTaskEmergency, "Emergency", 1000, NULL, 2, NULL);
+	xTaskCreate( vTaskBluetooth, "Bluetooth", 1000, NULL, 5, NULL);
+	xTaskCreate( vTaskEmergency, "Emergency", 1000, NULL, 4, NULL);
+	xTaskCreate( vTaskGPSwake, "GPS_wake", 1000, NULL, 2, NULL);
+	xTaskCreate( vTaskGPSreceive, "GPS_receive", 1000, NULL, 3, NULL);
+	xTaskCreate( vTaskReadWeightSensorData, "PD_wtsensor", 1000, NULL, 2, NULL);
+	xTaskCreate( vTaskArducamCapture, "PD_capt", 1000, NULL, 3, NULL);
+	xTaskCreate( vTaskReadAccelerometer, "AD_acc", 1000, NULL, 3, NULL);
 
 /*
  *	Create GPS logging file

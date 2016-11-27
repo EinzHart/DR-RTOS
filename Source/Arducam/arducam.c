@@ -9,9 +9,9 @@
 //first of all, set up all pins
 void InitCAMPins()
 {
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C2, ENABLE);
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI2, ENABLE);
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
+	RCC_APB1PeriphClockCmd(CAM_I2C_CLK, ENABLE);
+	RCC_APB1PeriphClockCmd(CAM_SPI_CLK, ENABLE);
+	RCC_AHB1PeriphClockCmd(CAM_GPIO_CLK, ENABLE);
 	GPIO_InitTypeDef GPIO_InitStructCS;
 	//CS pin PB12
 	GPIO_InitStructCS.GPIO_Pin = GPIO_Pin_12;
@@ -20,27 +20,27 @@ void InitCAMPins()
 	GPIO_InitStructCS.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStructCS.GPIO_PuPd =GPIO_PuPd_NOPULL;
 	GPIO_Init(GPIOB, &GPIO_InitStructCS);
-	//I2C pins:I2C2 PB10 PB11
+	//I2C pins:CAM_I2C PB10 PB11
 	GPIO_InitTypeDef GPIO_InitStructI2C;		//I2C GPIO
-	GPIO_InitStructI2C.GPIO_Pin = GPIO_Pin_10|GPIO_Pin_11;
+	GPIO_InitStructI2C.GPIO_Pin = CAM_I2C_SDA|CAM_I2C_SCL;
 	GPIO_InitStructI2C.GPIO_Mode  = GPIO_Mode_AF;
 	GPIO_InitStructI2C.GPIO_OType  = GPIO_OType_OD;
 	GPIO_InitStructI2C.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStructI2C.GPIO_PuPd =GPIO_PuPd_UP;
-	GPIO_Init(GPIOB, &GPIO_InitStructI2C);
-	GPIO_PinAFConfig(GPIOB,GPIO_PinSource10,GPIO_AF_I2C2);
-	GPIO_PinAFConfig(GPIOB,GPIO_PinSource11,GPIO_AF_I2C2);
-	I2C_InitTypeDef I2C2_handle;//I2C setup
-	I2C2_handle.I2C_Ack = I2C_Ack_Enable;
-	I2C2_handle.I2C_AcknowledgedAddress = I2C_AcknowledgedAddress_7bit;
-	I2C2_handle.I2C_ClockSpeed = 20000;
-	I2C2_handle.I2C_DutyCycle = I2C_DutyCycle_2;
-	I2C2_handle.I2C_Mode = I2C_Mode_I2C;
-	I2C2_handle.I2C_OwnAddress1 = 0x00;
-	I2C_Init(I2C2, &I2C2_handle);
-	I2C_Cmd(I2C2, ENABLE);
-	//SPI pins SPI2 pack2 PB13 PB14 PB15
-	TM_SPI_Init(SPI2, TM_SPI_PinsPack_2);
+	GPIO_Init(CAM_I2C_PORT, &GPIO_InitStructI2C);
+	GPIO_PinAFConfig(CAM_I2C_PORT,CAM_I2C_SDA,GPIO_AF_CAM_I2C);
+	GPIO_PinAFConfig(CAM_I2C_PORT,CAM_I2C_SCL,GPIO_AF_CAM_I2C);
+	I2C_InitTypeDef CAM_I2C_handle;//I2C setup
+	CAM_I2C_handle.I2C_Ack = I2C_Ack_Enable;
+	CAM_I2C_handle.I2C_AcknowledgedAddress = I2C_AcknowledgedAddress_7bit;
+	CAM_I2C_handle.I2C_ClockSpeed = 20000;
+	CAM_I2C_handle.I2C_DutyCycle = I2C_DutyCycle_2;
+	CAM_I2C_handle.I2C_Mode = I2C_Mode_I2C;
+	CAM_I2C_handle.I2C_OwnAddress1 = 0x00;
+	I2C_Init(CAM_I2C, &CAM_I2C_handle);
+	I2C_Cmd(CAM_I2C, ENABLE);
+	//SPI pins CAM_SPI pack2 PB13 PB14 PB15
+	TM_SPI_Init(CAM_SPI, CAM_SPI_PinPack);
 }
 
 //Set corresponding bit
@@ -134,7 +134,7 @@ uint32_t read_fifo_length(void)
 //Support ArduCAM Mini only
 void set_fifo_burst()
 {
-	TM_SPI_Send(SPI2,BURST_FIFO_READ);
+	TM_SPI_Send(CAM_SPI,BURST_FIFO_READ);
 }
 //chip select functions
 void selCAM()
@@ -153,8 +153,8 @@ int bus_write(int address, int value) {
   // take the SS pin low to select the chip:
   selCAM();
   //  send in the address and value via SPI:
-  TM_SPI_Send(SPI2, address);
-  TM_SPI_Send(SPI2, value);
+  TM_SPI_Send(CAM_SPI, address);
+  TM_SPI_Send(CAM_SPI, value);
   // take the SS pin high to de-select the chip:
   deselCAM();
   return 1;
@@ -166,8 +166,8 @@ uint8_t bus_read(int address) {
   // take the SS pin low to select the chip:
   selCAM();
   //  send in the address and value via SPI:
-  TM_SPI_Send(SPI2, address);
-  value = TM_SPI_Send(SPI2, 0x00);
+  TM_SPI_Send(CAM_SPI, address);
+  value = TM_SPI_Send(CAM_SPI, 0x00);
   // take the SS pin high to de-select the chip:
   deselCAM();
   return value;
@@ -191,16 +191,16 @@ uint8_t read_reg(uint8_t addr)
 //I2C sending command data
 byte wrSensorReg8_8(int regID, int regDat)
 {
-	while(I2C_GetFlagStatus(I2C2, I2C_FLAG_BUSY));
-	I2C_GenerateSTART(I2C2, ENABLE);
-	while(!I2C_CheckEvent(I2C2, I2C_EVENT_MASTER_MODE_SELECT));
-	I2C_Send7bitAddress(I2C2, sensor_add, I2C_Direction_Transmitter);
-    while(!I2C_CheckEvent(I2C2, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED));
-	I2C_SendData(I2C2, regID);
-	while(!I2C_CheckEvent(I2C2, I2C_EVENT_MASTER_BYTE_TRANSMITTED));
-	I2C_SendData(I2C2, regDat);
-	while(!I2C_CheckEvent(I2C2, I2C_EVENT_MASTER_BYTE_TRANSMITTED));
-	I2C_GenerateSTOP(I2C2, ENABLE);
+	while(I2C_GetFlagStatus(CAM_I2C, I2C_FLAG_BUSY));
+	I2C_GenerateSTART(CAM_I2C, ENABLE);
+	while(!I2C_CheckEvent(CAM_I2C, I2C_EVENT_MASTER_MODE_SELECT));
+	I2C_Send7bitAddress(CAM_I2C, sensor_add, I2C_Direction_Transmitter);
+    while(!I2C_CheckEvent(CAM_I2C, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED));
+	I2C_SendData(CAM_I2C, regID);
+	while(!I2C_CheckEvent(CAM_I2C, I2C_EVENT_MASTER_BYTE_TRANSMITTED));
+	I2C_SendData(CAM_I2C, regDat);
+	while(!I2C_CheckEvent(CAM_I2C, I2C_EVENT_MASTER_BYTE_TRANSMITTED));
+	I2C_GenerateSTOP(CAM_I2C, ENABLE);
   return (1);
 }
 
@@ -228,26 +228,26 @@ byte rdSensorReg8_8(uint8_t regID, uint8_t* regDat)
   //Wire.beginTransmission(sensor_addr >> 1);
   //Wire.write(regID & 0x00FF);
   //Wire.endTransmission();
-	  while(I2C_GetFlagStatus(I2C2, I2C_FLAG_BUSY));
-  I2C_GenerateSTART(I2C2, ENABLE);
-  	  while(!I2C_CheckEvent(I2C2, I2C_EVENT_MASTER_MODE_SELECT));
-  I2C_Send7bitAddress(I2C2, sensor_add, I2C_Direction_Transmitter);
-  	  while(!I2C_CheckEvent(I2C2, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED));
-  I2C_SendData(I2C2, regID);
-  	  while(!I2C_CheckEvent(I2C2, I2C_EVENT_MASTER_BYTE_TRANSMITTED));
-  I2C_GenerateSTOP(I2C2, ENABLE);
-  	  while(I2C_GetFlagStatus(I2C2, I2C_FLAG_BUSY));
+	  while(I2C_GetFlagStatus(CAM_I2C, I2C_FLAG_BUSY));
+  I2C_GenerateSTART(CAM_I2C, ENABLE);
+  	  while(!I2C_CheckEvent(CAM_I2C, I2C_EVENT_MASTER_MODE_SELECT));
+  I2C_Send7bitAddress(CAM_I2C, sensor_add, I2C_Direction_Transmitter);
+  	  while(!I2C_CheckEvent(CAM_I2C, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED));
+  I2C_SendData(CAM_I2C, regID);
+  	  while(!I2C_CheckEvent(CAM_I2C, I2C_EVENT_MASTER_BYTE_TRANSMITTED));
+  I2C_GenerateSTOP(CAM_I2C, ENABLE);
+  	  while(I2C_GetFlagStatus(CAM_I2C, I2C_FLAG_BUSY));
   //Wire.requestFrom((sensor_addr >> 1), 1);
-  I2C_GenerateSTART(I2C2, ENABLE);
-  	  while(!I2C_CheckEvent(I2C2, I2C_EVENT_MASTER_MODE_SELECT));
-  I2C_Send7bitAddress(I2C2, sensor_add|0x01, I2C_Direction_Receiver);
-  	  while(!I2C_CheckEvent(I2C2,I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED));
-  I2C_AcknowledgeConfig(I2C2, DISABLE);
-  *regDat =I2C_ReceiveData(I2C2);
-	  while(!I2C_CheckEvent(I2C2, I2C_EVENT_MASTER_BYTE_RECEIVED));
+  I2C_GenerateSTART(CAM_I2C, ENABLE);
+  	  while(!I2C_CheckEvent(CAM_I2C, I2C_EVENT_MASTER_MODE_SELECT));
+  I2C_Send7bitAddress(CAM_I2C, sensor_add|0x01, I2C_Direction_Receiver);
+  	  while(!I2C_CheckEvent(CAM_I2C,I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED));
+  I2C_AcknowledgeConfig(CAM_I2C, DISABLE);
+  *regDat =I2C_ReceiveData(CAM_I2C);
+	  while(!I2C_CheckEvent(CAM_I2C, I2C_EVENT_MASTER_BYTE_RECEIVED));
   Delay(1);
 
-  I2C_GenerateSTOP(I2C2, ENABLE);
+  I2C_GenerateSTOP(CAM_I2C, ENABLE);
   return (1);
 }
 

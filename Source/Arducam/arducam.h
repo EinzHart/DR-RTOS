@@ -2,6 +2,19 @@
 #ifndef __ARDUCAM__
 #define __ARDUCAM__
 
+//Pin Select
+#define CAM_SPI_CLK			RCC_APB1Periph_SPI2
+#define	CAM_GPIO_CLK		RCC_AHB1Periph_GPIOB
+#define CAM_I2C_CLK			RCC_APB1Periph_I2C2
+#define CAM_CS_PIN			GPIO_Pin_12
+#define CAM_CS_PORT			GPIOB
+#define CAM_I2C_SDA			GPIO_Pin_11
+#define CAM_I2C_SCL			GPIO_Pin_10
+#define CAM_I2C_PORT		GPIOB
+#define CAM_I2C				I2C2
+#define CAM_SPI				SPI2
+#define CAM_SPI_PinPack		TM_SPI_PinsPack_2
+
 
 
 #define OV2640_160x120 		0	//160x120
