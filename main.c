@@ -20,7 +20,12 @@
  */
 struct GPS_info GPS_data;	// Used for GPS data storage
 
+void ADCConvert_Potentiometer(void);
+int isPassenger(void);
+int getVoltage(void);
 
+extern ADC3ConvertedValue;
+extern ADC3ConvertedVoltage;
 
 /*
  * Semaphores Declaration
@@ -197,14 +202,13 @@ void vTaskReadWeightSensorData()
 	xLastWakeTime = xTaskGetTickCount();
 	while(1)
 	{
-		// Read weight sensor data
-		/*
-		 * insert code here
-		 */
-		xSemaphoreGive(xSemaphoreArducam);
-		xSemaphoreTake( xSemaphorePiComm, portMAX_DELAY );
-		Pi_PassengerDetected();
-		xSemaphoreGive( xSemaphorePiComm );
+		if(isPassenger())
+		{
+			xSemaphoreGive(xSemaphoreArducam);
+			xSemaphoreTake( xSemaphorePiComm, portMAX_DELAY );
+			Pi_PassengerDetected();
+			xSemaphoreGive( xSemaphorePiComm );
+		}
 		vTaskDelayUntil( &xLastWakeTime, ( 1000 / portTICK_RATE_MS ) );
 	}
 }
