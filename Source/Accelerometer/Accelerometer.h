@@ -1,5 +1,8 @@
 #ifndef __accelerometer
 #define __accelerometer
+#include "stm32f4xx_rcc.h"
+
+
 #define ACC_GPIO_ENABLER_CLK		RCC_AHB1Periph_GPIOB
 #define ACC_GPIO_ADC_CLK			RCC_AHB1Periph_GPIOC
 #define ACC_ADC_CLK					RCC_APB2Periph_ADC1
@@ -21,6 +24,6 @@ float getgX();
 float getgY();
 float getgZ();
 
-int ADdetect(float gx, float gy, float gz);
+int ADdetect();
 
 #endif

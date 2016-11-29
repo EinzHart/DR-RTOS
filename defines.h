@@ -12,7 +12,7 @@
 
 /* Select your SPI settings */
 #define FATFS_SPI                SPI1
-#define FATFS_SPI_PINSPACK        TM_SPI_PinsPack_1
+#define FATFS_SPI_PINSPACK        TM_SPI_PinsPack_1//PA7    PA6     PA5
 
 
 /* Custom CS pin for SPI communication */

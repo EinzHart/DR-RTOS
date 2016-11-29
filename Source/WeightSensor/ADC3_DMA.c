@@ -19,7 +19,7 @@
 #include "stm32f4xx_adc.h"
 #include "stm32f4xx_dma.h"
 #include <stdio.h>
-
+#include "weightsensor.h"
 /** @addtogroup STM32F4xx_StdPeriph_Examples
   * @{
   */
@@ -49,8 +49,6 @@ const int weightDiff = 2000;
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
-void ADC3_CH3_DMA_Config(void);
-int isPassenger(void);
 
 /**
   * @brief  ADC convert potentimeter program

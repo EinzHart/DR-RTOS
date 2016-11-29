@@ -17,7 +17,7 @@
  * |----------------------------------------------------------------------
  */
 #include "tm_stm32f4_delay.h"
-
+#include "freeRTOS.h"
 __IO uint32_t TM_TimingDelay = 0;
 __IO uint32_t TM_Time = 0;
 __IO uint32_t TM_Time2 = 0;
@@ -51,7 +51,12 @@ void SysTick_Handler(void) {
 	if (TM_Time2 != 0x00) {
 		TM_Time2--;
 	}
-	
+	if( xTaskIncrementTick() != pdFALSE )
+	{
+		/* A context switch is required.  Context switching is performed in
+		the PendSV interrupt.  Pend the PendSV interrupt. */
+		portNVIC_INT_CTRL_REG = portNVIC_PENDSVSET_BIT;
+	}
 	/* Call user function */
 	TM_DELAY_1msHandler();
 	

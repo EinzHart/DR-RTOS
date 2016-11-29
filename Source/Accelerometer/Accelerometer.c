@@ -1,5 +1,7 @@
 #include "stm32f4xx_gpio.h"
 #include "stm32f4xx_adc.h"
+#include "accelerometer.h"
+
 
 int acc_init()
 {
@@ -30,7 +32,7 @@ int acc_init()
 	Accelerometer_ADC.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_Rising;
 	Accelerometer_ADC.ADC_NbrOfConversion = 3;
 	Accelerometer_ADC.ADC_ScanConvMode = DISABLE;
-	ADC_Init(Accelerometer_ADC);
+	ADC_Init(ACC_ADC_SEL, &Accelerometer_ADC);
 	ADC_Cmd(ACC_ADC_SEL,ENABLE);
 }
 
@@ -39,7 +41,7 @@ int getX()
 	int _temp;
 	ADC_RegularChannelConfig(ACC_ADC_SEL, ACC_ADC_PinX, 1, 20);
 	_temp = ADC_GetConversionValue(ADC1);
-	return temp;
+	return _temp;
 
 }
 
@@ -48,7 +50,7 @@ int getY()
 	int _temp;
 	ADC_RegularChannelConfig(ACC_ADC_SEL, ACC_ADC_PinY, 1, 20);
 	_temp = ADC_GetConversionValue(ADC1);
-	return temp;
+	return _temp;
 
 }
 
@@ -57,7 +59,7 @@ int getZ()
 	int _temp;
 	ADC_RegularChannelConfig(ACC_ADC_SEL, ACC_ADC_PinZ, 1, 20);
 	_temp = ADC_GetConversionValue(ADC1);
-	return temp;
+	return _temp;
 
 }
 

@@ -8,6 +8,7 @@
 #define CAM_I2C_CLK			RCC_APB1Periph_I2C2
 #define CAM_CS_PIN			GPIO_Pin_12
 #define CAM_CS_PORT			GPIOB
+#define GPIO_AF_CAM_I2C 	GPIO_AF_I2C2
 #define CAM_I2C_SDA			GPIO_Pin_11
 #define CAM_I2C_SCL			GPIO_Pin_10
 #define CAM_I2C_PORT		GPIOB

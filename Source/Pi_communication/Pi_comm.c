@@ -16,7 +16,7 @@ int Pi_comm_init()
 	GPIO_InitStruct_TX.GPIO_OType  = GPIO_OType_PP;
 	GPIO_InitStruct_TX.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStruct_TX.GPIO_PuPd =GPIO_PuPd_NOPULL;
-	GPIO_Init(PI_GPIO_PORT, &GPIO_InitStruct_TX);
+	GPIO_Init(PI_GPIO_PORT_TX, &GPIO_InitStruct_TX);
 	GPIO_PinAFConfig(PI_GPIO_PORT_TX,PI_AF_PinSource_TX,PI_GPIO_AF);
 
 
@@ -26,7 +26,7 @@ int Pi_comm_init()
 	GPIO_InitStruct_RX.GPIO_OType  = GPIO_OType_PP;
 	GPIO_InitStruct_RX.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStruct_RX.GPIO_PuPd =GPIO_PuPd_NOPULL;
-	GPIO_Init(PI_GPIO_PORT, &GPIO_InitStruct_RX);
+	GPIO_Init(PI_GPIO_PORT_RX, &GPIO_InitStruct_RX);
 	GPIO_PinAFConfig(PI_GPIO_PORT_RX,PI_AF_PinSource_RX,PI_GPIO_AF);
 	//uart init
 	USART_InitTypeDef UART_handle;
@@ -42,11 +42,11 @@ int Pi_comm_init()
 	return 0;
 }
 
-int Pi_SendBuf(byte* buf, int len)
+int Pi_sendBuf(byte* buf, int len)
 {
 	int i;
 	for(i = 0; i < len; i++)
-		USART_SendData(PI_UART, buf[i]);
+		USART_SendData(PI_UART_PORT, buf[i]);
 	return len;
 }
 
@@ -58,7 +58,7 @@ int Pi_AggressiveDetected()
 	sendBuf[1] = 0xAA;  // start indicator
 	sendBuf[2] = 0xAD;	// type: aggressive driving
 	sendBuf[3] = 0xED;	// end byte
-	Pi_SendBuf(sendBuf, 4);
+	Pi_sendBuf(sendBuf, 4);
 	return 4;
 }
 
@@ -70,7 +70,7 @@ int Pi_PassengerDetected()
 	sendBuf[1] = 0xAA;  // start indicator
 	sendBuf[2] = 0xCD;	// type: Passenger Detected
 	sendBuf[3] = 0xED;	// end byte
-	Pi_SendBuf(sendBuf, 4);
+	Pi_sendBuf(sendBuf, 4);
 	return 4;
 }
 
@@ -82,13 +82,13 @@ int Pi_SendGPS(struct GPS_info* GPS)
 	sendBuf[2] = 0xCD;	// type: GPS_sending
 	sendBuf[3] = GPS->lat;  //latitude
 	sendBuf[4] = GPS->lon;	//longitude
-	SendBuf[5] = GPS->year;	// time format YY-MM-DD-HH-MIN
-	SendBuf[6] = GPS->month;
-	SendBuf[7] = GPS->day;
-	SendBuf[8] = GPS->hour;
-	SendBuf[9] = GPS->minute;
-	SendBuf[10] = 0xED;	// end byte
-	Pi_SendBuf(sendBuf, 10);
+	sendBuf[5] = GPS->year;	// time format YY-MM-DD-HH-MIN
+	sendBuf[6] = GPS->month;
+	sendBuf[7] = GPS->day;
+	sendBuf[8] = GPS->hour;
+	sendBuf[9] = GPS->minute;
+	sendBuf[10] = 0xED;	// end byte
+	Pi_sendBuf(sendBuf, 10);
 	return 10;
 }
 

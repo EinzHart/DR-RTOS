@@ -5,6 +5,7 @@
 #include "tm_stm32f4_fatfs.h"
 #include "tm_stm32f4_spi.h"
 
+#include "init.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
@@ -12,8 +13,7 @@
 #include "semphr.h"
 #include "GPS_parsing.h"
 #include "Arducam.h"
-#include "defines.h"
-
+#include "weightsensor.h"
 
 /*
  * Global variables
@@ -152,10 +152,11 @@ void vTaskGPSwake(void *pcParam)
 	xLastWakeTime = xTaskGetTickCount();
 	while(1)
 	{
-		xSemaphoreGive(xSemaphoreGPS);
+
 		xSemaphoreTake( xSemaphorePiComm, portMAX_DELAY );
 		Pi_SendGPS(GPS_data);
 		xSemaphoreGive ( xSemaphorePiComm );
+		xSemaphoreGive(xSemaphoreGPS);
 		vTaskDelayUntil( &xLastWakeTime, ( 1000 / portTICK_RATE_MS ) );
 	}
 }
@@ -216,7 +217,7 @@ void vTaskReadWeightSensorData()
 void vTaskArducamCapture()
 {
 	FATFS FatFs;
-	Fil fil;
+	FIL fil;
 	while(1)
 	{
 		xSemaphoreTake( xSemaphoreSD, portMAX_DELAY );
@@ -248,7 +249,7 @@ void vTaskReadAccelerometer()
 		 if(ADdetect())
 		 {
 			 xSemaphoreTake(xSemaphorePiComm, portMAX_DELAY );
-			 sendUart2PI(ADDetected);
+			 Pi_AggressiveDetected();
 			 xSemaphoreGive(xSemaphorePiComm);
 		 }
 		vTaskDelayUntil( &xLastWakeTime, ( 250 / portTICK_RATE_MS ) );
@@ -269,8 +270,8 @@ int main(void){
  *  Create tasks
  */
 
-	xTaskCreate( vTaskBluetooth, "Bluetooth", 1000, NULL, 5, NULL);
-	xTaskCreate( vTaskEmergency, "Emergency", 1000, NULL, 4, NULL);
+	xTaskCreate( vTaskBluetooth, "Bluetooth", 1000, NULL, 3, NULL);
+	xTaskCreate( vTaskEmergency, "Emergency", 1000, NULL, 2, NULL);
 	xTaskCreate( vTaskGPSwake, "GPS_wake", 1000, NULL, 2, NULL);
 	xTaskCreate( vTaskGPSreceive, "GPS_receive", 1000, NULL, 3, NULL);
 	xTaskCreate( vTaskReadWeightSensorData, "PD_wtsensor", 1000, NULL, 2, NULL);
@@ -283,7 +284,9 @@ int main(void){
  */
 	FATFS FatFs;
 	FIL fil;
-	if (f_mount(&FatFs, "", 1) == FR_OK)
+	SystemInit();
+	modules_init();
+	if (f_mount(&FatFs, "E", 1) == FR_OK)
 	{
 		if (f_open(&fil, "testDriveGPS.txt", FA_OPEN_ALWAYS | FA_READ | FA_WRITE) == FR_OK)
 		{

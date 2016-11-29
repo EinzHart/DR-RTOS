@@ -12,7 +12,7 @@
 extern int errno;
 extern int  _end;
 
-caddr_t _sbrk ( int incr )
+char* _sbrk ( int incr )
 {
   static unsigned char *heap = NULL;
   unsigned char *prev_heap;
@@ -24,7 +24,7 @@ caddr_t _sbrk ( int incr )
 
   heap += incr;
 
-  return (caddr_t) prev_heap;
+  return (char*) prev_heap;
 }
 
 int link(char *old, char *new) {
@@ -36,11 +36,13 @@ int _close(int file)
   return -1;
 }
 
+/*
 int _fstat(int file, struct stat *st)
 {
   st->st_mode = S_IFCHR;
   return 0;
 }
+*/
 
 int _isatty(int file)
 {
